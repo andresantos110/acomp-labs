@@ -1,0 +1,108 @@
+		
+varn		DCD		10
+res		FILL		4
+		
+		
+		ADR		R1, varn
+		LDR		R1, [R1]
+		
+		SUB		SP, SP, #4         ;;mete n na pilha
+		STR		R1, [SP, #0]
+		
+		BL		UN
+		
+		LDR		R0, [SP, #0]
+		ADR		R3 ,res
+		STR		R0,[R3]
+		END
+		
+		
+		
+		
+		
+UN		SUB		SP, SP, #16    			;;contexto
+		STR		LR, [SP, #12]
+		STR		R3, [SP, #8]
+		STR		R2, [SP, #4]
+		STR		R1, [SP, #0]
+		
+		
+		LDR		R1, [SP, #16]  ;;    r1=n
+		
+		AND		R2, R1, #1     ;; se n for par r2 = 0, senao n e impar
+		
+		MOV		R3,#1
+		CMP		R1,#1
+		BLE		fimU			;; n <= 1 ,  Un = 1
+		
+		
+		LSR		R1,R1,#1 		;; r1 = floor(n)
+		SUB		SP, SP, #4         ;;mete floor(n) na pilha
+		STR		R1, [SP, #0]
+		BL		UN
+		LDR		R3,[SP,#0]      ;;pop resultado
+		ADD		SP,SP,#4
+		
+		
+		
+		CMP		R2,#0
+		BNE		IMPAR
+		
+		SUB		SP,SP,#8
+		MOV		R2,#2
+		STR		R3,[SP,#4]
+		STR		R2,[SP,#0]
+		BL		Mult
+		
+		LDR		R3,[SP,#0]				 ;;pop resultado  r3 = 2Un
+		ADD		SP,SP,#4
+		B		fimU
+IMPAR
+		SUB		SP,SP,#8
+		STR		R3,[SP,#4]
+		STR		R3,[SP,#0]
+		BL		Mult
+		LDR		R3,[SP,#0]				 ;;pop resultado  r3 = Un * Un
+		ADD		SP,SP,#4
+		
+		
+		
+		
+fimU		MOV		R1,R3
+		STR		R1, [SP, #16]      ;;resultado na pilha
+		LDR		R1, [SP, #0]
+		LDR		R2, [SP, #4]         ;; pops
+		LDR		R3, [SP, #8]
+		LDR		LR, [SP, #12]
+		ADD		SP, SP, #16
+		
+		MOV		PC, LR
+		
+		
+		
+		
+		
+		
+		
+Mult		SUB		SP, SP, #12
+		STR		R0, [SP, #8]
+		STR		R1, [SP, #4]
+		STR		R2, [SP, #0]
+		
+		LDR		R2, [SP, #16]
+		LDR		R1, [SP, #12]
+		MOV		R0, #0
+		
+		CMP		R1, R0
+		BEQ		OutMul
+		CMP		R2, R0
+		BEQ		OutMul
+MulLoop	ADD		R0, R0, R1
+		SUBS		R2, R2, #1
+		BNE		MulLoop
+OutMul	STR		R0, [SP, #16]
+		LDR		R2, [SP, #0]
+		LDR		R1, [SP, #4]
+		LDR		R0, [SP, #8]
+		ADD		SP, SP, #16
+		MOV		PC, LR

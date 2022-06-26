@@ -1,0 +1,208 @@
+tabela		FILL		16
+			MOV		R0,#1
+			MOV		R1,#0
+			MOV		R2,#0
+			
+			BL		redexor
+			LDR		R9,[SP,#0]
+			
+			END
+			
+			
+			
+redexor
+			SUB		SP,SP,#16
+			STR		R0,[SP,#12]
+			STR		R1,[SP,#8]
+			STR		R2,[SP,#4]
+			STR		LR,[SP,#0]
+			
+			
+			
+			MOV		R3,#2
+			MOV		R4,#-2
+			MOV		R10,#1
+			
+			SUB		SP,SP,#16
+			STR		R0,[SP,#12]
+			STR		R1,[SP,#8]    ;; guarda variaveis na pilha
+			STR		R2,[SP,#4]
+			STR		R3,[SP,#0]
+			
+			BL		neuronio
+			LDR		R5,[SP,#0] ;;C
+			ADD		SP,SP,#4 ;;POP
+			
+			MOV		R3,#-2
+			MOV		R4,#2
+			
+			SUB		SP,SP,#16
+			STR		R0,[SP,#12]
+			STR		R1,[SP,#8]   ;; guarda variaveis na pilha
+			STR		R2,[SP,#4]
+			STR		R3,[SP,#0]
+			
+			BL		neuronio
+			LDR		R6,[SP,#0] ;;d
+			ADD		SP,SP,#4 ;;POP
+			
+			MOV		R3,#2
+			MOV		R4,#2
+			SUB		SP,SP,#16
+			STR		R5,[SP,#12]
+			STR		R6,[SP,#8]
+			STR		R3,[SP,#4]
+			STR		R4,[SP,#0]
+			BL		neuronio
+			
+			LDR		R5,[SP,#0]  ;;Y   = A XOR B
+			ADD		SP,SP,#4 ;;POP
+			
+			LDR		R0,[SP,#12]
+			LDR		R1,[SP,#4]
+			
+			MOV		R3,#2
+			MOV		R4,#2
+			SUB		SP,SP,#16
+			STR		R0,[SP,#12]
+			STR		R1,[SP,#8]    ;; guarda variaveis na pilha
+			STR		R2,[SP,#4]
+			STR		R3,[SP,#0]
+			BL		neuronio
+			
+			LDR		R7,[SP,#0]
+			ADD		SP,SP,#4   ;;POP
+			
+			MOV		R0,R5
+			MOV		R1,R7
+			MOV		R3,#1
+			MOV		R4,#1
+			MOV		R10,#2
+			SUB		SP,SP,#16
+			STR		R0,[SP,#12]
+			STR		R1,[SP,#8]    ;; guarda variaveis na pilha
+			STR		R2,[SP,#4]
+			STR		R3,[SP,#0]
+			BL		neuronio
+			
+			LDR		R5,[SP,#0]
+			ADD		SP,SP,#4
+			
+			
+			
+			STR		R5,[SP,#16]
+			LDR		LR,[SP,#0]
+			LDR		R2,[SP,#4]
+			LDR		R1,[SP,#8]
+			LDR		R0,[SP,#12]
+			ADD		SP,SP,#16
+			
+			MOV		PC,LR
+			
+			
+			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Neuronio;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+neuronio		SUB		SP,SP,#20
+			STR		R0,[SP,#16]
+			STR		R1,[SP,#12]      ;; guardar cont
+			STR		R2,[SP,#8]
+			STR		R3,[SP,#4]
+			STR		LR,[SP,#0]
+			
+			
+			LDR		R0,[SP,#32] ;; load x1,w1
+			LDR		R1,[SP,#24]
+			
+			SUB		SP,SP,#8
+			STR		R0,[SP,#4]
+			STR		R1,[SP,#0]
+			
+			BL		multiplica
+			
+			LDR		R2,[SP,#0] ;; pop x1*w1 s1
+			ADD		SP,SP,#4
+			
+			
+			LDR		R0,[SP,#28] ;; load x2,w2
+			LDR		R1,[SP,#20]
+			
+			SUB		SP,SP,#8
+			STR		R0,[SP,#4]
+			STR		R1,[SP,#0]
+			BL		multiplica
+			
+			LDR		R3,[SP,#0] ;; x2*w2 s2
+			ADD		SP,SP,#4
+			
+			ADD		R2,R2,R3
+			SUB		R2,R2,R10  ;; s1+s2-1   s
+			
+			CMP		R2,#0
+			BGE		return1
+			MOV		R2,#0
+			B		fimneuronio
+return1		MOV		R2,#1
+			
+fimneuronio
+			
+			STR		R2,[SP,#32]
+			LDR		LR,[SP,#0]
+			LDR		R3,[SP,#4]
+			LDR		R2,[SP,#8]  ;; repor cont
+			LDR		R1,[SP,#12]
+			LDR		R0,[SP,#16]
+			ADD		SP,SP,#32
+			MOV		PC,LR
+			
+			;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Multiplica;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+multiplica	SUB		SP,SP,#16
+			STR		R0,[SP,#12]
+			STR		R1,[SP,#8]
+			STR		R2,[SP,#4] ;; guardar cont
+			STR		R3,[SP,#0]
+			
+			LDR		R0,[SP,#20]  ;; load a , b
+			LDR		R1,[SP,#16]
+			MOV		R3,#0
+			
+			CMP		R0,#0
+			BGE		positivo0        ;;verifica se a e positivo
+			SUB		R0,R12,R0
+			ADD		R3,R3,#1
+positivo0		CMP		R1,#0
+			BGE		positivo1       ;; verifiva se b e positivo
+			SUB		R1,R12,R1
+			ADD		R3,R3,#1
+positivo1		CMP		R0,R1
+			BGE		maior0
+			MOV		R2,R0          ;;TROCA caso a > b
+			MOV		R0,R1
+			MOV		R1,R2
+			
+maior0		MOV		R2,#0
+loopmult		CMP		R1,#0
+			BEQ		fimloop
+			ADD		R2,R2,R0
+			SUB		R1,R1,#1
+			BGT		loopmult
+			
+			
+fimloop
+			CMP		R3,#1            ;;quando apenas 1 do numeros é negativo, inverte o resultado
+			BNE		fimmult
+			SUB		R2,R12,R2
+fimmult
+			STR		R2,[SP,#20]
+			LDR		R3,[SP,#0]
+			LDR		R2,[SP,#4]        ;; report cont
+			LDR		R1,[SP,#8]
+			LDR		R0,[SP,#12]
+			ADD		SP,SP,#20
+			MOV		PC,LR
+			
+			
+			
+			
+			
+			
+			
+			
